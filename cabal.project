@@ -1,0 +1,11 @@
+packages: .
+
+packages: https://oleg.fi/gentle-introduction-2020.11.tar.gz
+
+source-repository-package
+  type: git
+  location: https://github.com/phadej/cabal-extras.git
+  tag: 8dd1fcf31978f8312da31c24edf3f11cb8f3fd66
+  subdir: peura
+
+allow-newer: peura:Cabal
