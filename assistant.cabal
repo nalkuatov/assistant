@@ -20,10 +20,13 @@ executable assistant
 library
     build-depends:
         , base        ^>=4.14.3.0
+        , fmt
         , http-types
+        , mtl
         , modern-uri
         , o-clock
         , peura
+        , req
         , universum
         , time
 

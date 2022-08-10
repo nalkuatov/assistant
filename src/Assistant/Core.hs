@@ -9,7 +9,3 @@ data TimeEntry timeunit = TimeEntry
   { duration :: Time timeunit
   , descr :: Text
   }
-
-type Secret = Text
-
-data Target = Telegram Secret
