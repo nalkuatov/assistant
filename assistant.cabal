@@ -23,6 +23,7 @@ library
         , fmt
         , http-types
         , mtl
+        , microlens-platform
         , modern-uri
         , o-clock
         , req
@@ -30,7 +31,7 @@ library
         , unordered-containers
         , time
 
-    default-extensions: NoImplicitPrelude, OverloadedStrings, RecordWildCards, NamedFieldPuns
+    default-extensions: ScopedTypeVariables, TypeApplications, ExplicitForAll, NoImplicitPrelude, OverloadedStrings, RecordWildCards, NamedFieldPuns
     exposed-modules:    Assistant
     other-modules:
         Assistant.Report

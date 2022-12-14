@@ -1,8 +1,8 @@
 module Assistant.Report where
 
-import Universum
-import qualified Data.HashMap.Strict as Map
-import Time (Time, sec, (+:+))
+import Universum hiding ((^.))
+import Lens.Micro.Platform ((^.), at)
+import Time (Time, sec, (+:+), time)
 
 import Assistant.TimeEntry
 
@@ -12,6 +12,7 @@ newtype Report timeunit = Report
   { entries :: HashMap ProjectId [TimeEntry timeunit]
   }
 
-totalDuration :: ProjectId -> Report timeunit -> Time timeunit
-totalDuration project (Report { entries, ..}) = fromMaybe (sec 0) $
-  (foldl (+:+) (sec 0)) <$> Map.lookup project entries
+totalDuration :: forall timeunit. ProjectId -> Report timeunit -> Time timeunit
+totalDuration project (Report { entries, .. })
+  = (entries ^. at project) <&> mconcat . fmap duration
+  ?: time @timeunit 0
