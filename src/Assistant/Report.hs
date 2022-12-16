@@ -2,17 +2,17 @@ module Assistant.Report where
 
 import Universum hiding ((^.))
 import Lens.Micro.Platform ((^.), at)
-import Time (Time, sec, (+:+), time)
+import Time (Time, sec)
 
 import Assistant.TimeEntry
 
 type ProjectId = Text
 
-newtype Report timeunit = Report
-  { entries :: HashMap ProjectId [TimeEntry timeunit]
+newtype Report = Report
+  { entries :: HashMap ProjectId [TimeEntry]
   }
 
-totalDuration :: forall timeunit. ProjectId -> Report timeunit -> Time timeunit
+totalDuration :: ProjectId -> Report -> Duration
 totalDuration project (Report { entries, .. })
   = (entries ^. at project) <&> mconcat . fmap duration
-  ?: time @timeunit 0
+  ?: Duration $ sec 0

@@ -6,36 +6,50 @@ maintainer:         alkuatovnurlan@gmail.com
 extra-source-files: CHANGELOG.md
 
 executable assistant
-    main-is:          Main.hs
+  main-is:          Main.hs
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:    base ^>=4.16.4.0
-    hs-source-dirs:   app
-    default-language: Haskell2010
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:    base ^>=4.16.4.0
+  hs-source-dirs:   app
+  default-language: Haskell2010
 
 library
-    build-depends:
-        , base        ^>=4.16.4.0
-        , fmt
-        , http-types
-        , mtl
-        , microlens-platform
-        , modern-uri
-        , o-clock
-        , req
-        , universum
-        , unordered-containers
-        , time
+  build-depends:
+    , aeson
+    , base                  ^>=4.16.4.0
+    , fmt
+    , http-types
+    , microlens-platform
+    , modern-uri
+    , mtl
+    , o-clock
+    , req
+    , time
+    , universum
+    , unordered-containers
 
-    default-extensions: ScopedTypeVariables, TypeApplications, ExplicitForAll, NoImplicitPrelude, OverloadedStrings, RecordWildCards, NamedFieldPuns
-    exposed-modules:    Assistant
-    other-modules:
-        Assistant.Report
-        Assistant.TimeEntry
+  default-extensions:
+    NoImplicitPrelude
+    DeriveAnyClass
+    DeriveGeneric
+    DerivingStrategies
+    ExplicitForAll
+    FlexibleInstances
+    GeneralizedNewtypeDeriving
+    NamedFieldPuns
+    OverloadedStrings
+    RecordWildCards
+    ScopedTypeVariables
+    TypeApplications
 
-    hs-source-dirs:     src
-    default-language:   Haskell2010
+  exposed-modules:    Assistant
+  other-modules:
+    Assistant.Report
+    Assistant.TimeEntry
+
+  hs-source-dirs:     src
+  default-language:   Haskell2010
