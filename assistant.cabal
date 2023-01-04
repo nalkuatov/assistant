@@ -39,6 +39,8 @@ library
     DerivingStrategies
     ExplicitForAll
     FlexibleInstances
+    FlexibleContexts
+    LambdaCase
     GeneralizedNewtypeDeriving
     NamedFieldPuns
     OverloadedStrings
@@ -48,6 +50,8 @@ library
 
   exposed-modules:    Assistant
   other-modules:
+    Assistant.Req
+    Assistant.Config
     Assistant.Report
     Assistant.TimeEntry
 
