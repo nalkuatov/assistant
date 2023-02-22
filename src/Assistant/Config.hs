@@ -1,14 +1,18 @@
 module Assistant.Config where
 
 import Universum
+import Text.URI (URI)
+import Network.HTTP.Client (responseStatus, getOriginalRequest, host)
 import Control.Monad.Except (MonadError, throwError)
-import Network.HTTP.Req (MonadHttp(handleHttpException), HttpException(..))
+import Network.HTTP.Req (MonadHttp(handleHttpException), isStatusCodeException, HttpException(..), Url, Scheme(..))
 
-type Assistant = AssistantT IO
+type Assistant = AssistantT IO AssistantError
 
-data AssistantError = NetworkError | DecodingError
+data AssistantError = ServerError ByteString | NetworkError Text | DecodingError Text
+  deriving stock Show
+  deriving anyclass Exception
 
-newtype MonadIO m => AssistantT m a
+newtype MonadIO m => AssistantT m e a
   = AssistantT
   { unAssistantT :: ReaderT Config (ExceptT AssistantError m) a
   }
@@ -16,11 +20,31 @@ newtype MonadIO m => AssistantT m a
 
 instance MonadHttp Assistant where
   handleHttpException = \case
-    VanillaHttpException _ -> throwError NetworkError
-    JsonHttpException _ -> throwError DecodingError
+    e@(VanillaHttpException _) ->
+      case isStatusCodeException e of
+        Just(resp) ->
+          let msg = (host $ getOriginalRequest resp) <> " " <> (show $ responseStatus resp)
+          in throwError $ ServerError msg
+        _ -> throwError $ NetworkError $ show e
+    JsonHttpException e -> throwError $ DecodingError $ show e
+
+runAssistant :: Config -> Assistant a -> IO a
+runAssistant config = (>>= res) . runExceptT . ($ config) . runReaderT . unAssistantT
+  where
+    res = \case
+      Right a -> pure a
+      Left e  -> throwM e
 
 data Config
   = Config
-  { _telegram :: Text -- telegram token
-  , _toggl    :: Text -- toggltrack api token
+  { telegram :: WebResource Https
+  , toggl    :: WebResource Https
   }
+
+data WebResource scheme
+  = WebResource
+  { url :: Url scheme
+  , username :: ByteString
+  , password :: ByteString
+  }
+  deriving stock (Show, Eq)

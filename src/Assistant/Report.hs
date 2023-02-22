@@ -1,18 +1,23 @@
 module Assistant.Report where
 
 import Universum hiding ((^.))
+import qualified Data.HashMap.Strict as HM
+import Data.Aeson (FromJSON(..))
 import Lens.Micro.Platform ((^.), at)
 import Time (Time, sec)
 
 import Assistant.TimeEntry
 
-type ProjectId = Text
+type ProjectId = Integer
 
-newtype Report = Report
-  { entries :: HashMap ProjectId [TimeEntry]
-  }
+newtype Report = Report (HashMap ProjectId Duration)
+  deriving stock Show
 
-totalDuration :: ProjectId -> Report -> Duration
-totalDuration project (Report { entries, .. })
-  = (entries ^. at project) <&> mconcat . fmap duration
-  ?: Duration $ sec 0
+instance FromJSON Report where
+  parseJSON v =
+    let toPair TimeEntry{..} = (projectId, duration)
+    in (Report . fromList . fmap toPair) <$> parseJSON @[TimeEntry] v
+
+instance FromList Report where
+  type ListElement Report = (ProjectId, Duration)
+  fromList = Report . HM.fromListWith (<>)

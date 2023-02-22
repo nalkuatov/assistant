@@ -1,8 +1,10 @@
 module Assistant.TimeEntry where
 
-import Data.Aeson (FromJSON(..))
 import Universum
-import GHC.Generics
+import Data.Aeson (FromJSON(..), fieldLabelModifier, defaultOptions)
+import Data.Aeson.TH (deriveFromJSON)
+import Data.Aeson.Casing (snakeCase)
+import GHC.Generics (Generic)
 
 import Time (Time, Second, RatioNat, sec)
 
@@ -14,12 +16,12 @@ instance FromJSON Duration where
     = asum [ fmap mkDuration $ parseJSON @Natural v
            , pure $ Duration $ sec 0
            ]
-    where
-      mkDuration = Duration . sec . fromIntegral @_ @RatioNat
+    where mkDuration = Duration . sec . fromIntegral @_ @RatioNat
 
 data TimeEntry = TimeEntry
   { duration :: Duration
-  , projectId :: Text
+  , projectId :: Integer
   }
-  deriving stock Generic
-  deriving anyclass FromJSON
+  deriving stock (Show, Generic)
+
+$(deriveFromJSON defaultOptions { fieldLabelModifier = snakeCase } ''TimeEntry)

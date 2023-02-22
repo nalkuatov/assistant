@@ -1,23 +1,21 @@
-module Assistant.Req
-  ( fetchEntries
-  , uploadEntries
-  )
-  where
+module Assistant.Req where
 
 import Universum
 import Data.Aeson (Value)
-import Network.HTTP.Req (MonadHttp, GET(..), https, req, NoReqBody(..), jsonResponse, ignoreResponse, responseBody, (/:))
+import Data.Time (UTCTime)
+import Network.HTTP.Req (MonadHttp, GET(..), basicAuth, useHttpsURI, req, NoReqBody(..), jsonResponse, ignoreResponse, responseBody, (/:))
 
 import Assistant.Config
+import Assistant.Report
 import Assistant.TimeEntry
 
-fetchEntries :: (MonadHttp m, MonadReader Config m) => m [TimeEntry]
-fetchEntries = do
-  toggl <- asks _toggl
-  resp  <- req GET (https toggl /: "entries") NoReqBody jsonResponse mempty
+fetchEntries :: UTCTime -> UTCTime -> Assistant Report
+fetchEntries start end = do
+  WebResource{..} <- asks toggl
+  resp  <- req GET url NoReqBody jsonResponse (basicAuth username password)
   pure $ responseBody resp
 
-uploadEntries :: (MonadHttp m, MonadReader Config m) => m ()
-uploadEntries = do
-  tg <- asks _telegram
-  void $ req GET (https tg /: "api") NoReqBody ignoreResponse mempty
+uploadEntries :: Report -> Assistant ()
+uploadEntries _ = do
+  tg <- asks $ url . telegram
+  void $ req GET tg NoReqBody ignoreResponse mempty
