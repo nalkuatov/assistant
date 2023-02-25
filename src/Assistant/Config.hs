@@ -1,10 +1,12 @@
 module Assistant.Config where
 
 import Universum
-import Text.URI (URI)
+import Text.URI (URI, mkURI)
+import Data.Aeson (FromJSON(..), (.:), Value(..))
 import Network.HTTP.Client (responseStatus, getOriginalRequest, host)
+import Network.HTTP.Types (statusCode)
 import Control.Monad.Except (MonadError, throwError)
-import Network.HTTP.Req (MonadHttp(handleHttpException), isStatusCodeException, HttpException(..), Url, Scheme(..))
+import Network.HTTP.Req (MonadHttp(handleHttpException), isStatusCodeException, HttpException(..), Url, Scheme(..), useHttpsURI)
 
 type Assistant = AssistantT IO AssistantError
 
@@ -23,7 +25,7 @@ instance MonadHttp Assistant where
     e@(VanillaHttpException _) ->
       case isStatusCodeException e of
         Just(resp) ->
-          let msg = (host $ getOriginalRequest resp) <> " " <> (show $ responseStatus resp)
+          let msg = (host $ getOriginalRequest resp) <> " " <> (show $ statusCode $ responseStatus resp)
           in throwError $ ServerError msg
         _ -> throwError $ NetworkError $ show e
     JsonHttpException e -> throwError $ DecodingError $ show e
@@ -37,14 +39,29 @@ runAssistant config = (>>= res) . runExceptT . ($ config) . runReaderT . unAssis
 
 data Config
   = Config
-  { telegram :: WebResource Https
-  , toggl    :: WebResource Https
+  { telegram :: WebResource
+  , toggl    :: WebResource
   }
+  deriving stock (Show, Generic)
+  deriving anyclass FromJSON
 
-data WebResource scheme
+data WebResource
   = WebResource
-  { url :: Url scheme
-  , username :: ByteString
-  , password :: ByteString
+  { url :: Address 'Https
+  , username :: Text
+  , password :: Text
   }
-  deriving stock (Show, Eq)
+  deriving stock (Show, Eq, Generic)
+  deriving anyclass FromJSON
+
+newtype Address (scheme :: Scheme) = Address (Url scheme)
+ deriving stock (Show, Eq)
+
+instance FromJSON (Address 'Https) where
+  parseJSON v = do
+    text <- parseJSON v
+    case parseUrl text of
+      Just url -> pure $ Address url
+      _ -> empty
+    where
+      parseUrl = fmap fst . useHttpsURI <=< mkURI

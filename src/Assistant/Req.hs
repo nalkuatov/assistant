@@ -11,11 +11,12 @@ import Assistant.TimeEntry
 
 fetchEntries :: UTCTime -> UTCTime -> Assistant Report
 fetchEntries start end = do
-  WebResource{..} <- asks toggl
-  resp  <- req GET url NoReqBody jsonResponse (basicAuth username password)
+  WebResource{url = Address url, ..} <- asks toggl
+  resp <- req GET url NoReqBody jsonResponse
+      (basicAuth (encodeUtf8 username) (encodeUtf8 password))
   pure $ responseBody resp
 
 uploadEntries :: Report -> Assistant ()
 uploadEntries _ = do
-  tg <- asks $ url . telegram
-  void $ req GET tg NoReqBody ignoreResponse mempty
+  WebResource{url = Address url, ..} <- asks telegram
+  void $ req GET url NoReqBody ignoreResponse mempty

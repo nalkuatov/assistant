@@ -18,8 +18,8 @@ import Assistant.Req
 run :: IO ()
 run = do
   now <- getCurrentTime
-  -- FIXME config <- decodeFileThrow "config.yaml"
-  runAssistant undefined $ Conduit.runConduit assistantConduit -- FIXME
+  config <- decodeFileThrow "config.yaml"
+  runAssistant config $ Conduit.runConduit assistantConduit
 
 assistantConduit :: ConduitT () Void Assistant ()
 assistantConduit = entries .| Conduit.print
