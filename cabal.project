@@ -2,3 +2,9 @@ packages: .
 
 package o-clock
   flags: +aeson
+
+source-repository-package
+  type: git
+  location: https://github.com/serokell/nyan-interpolation
+  tag: 348355385466d6d0116251b463a2842ecce0360d
+  subdir: full core

@@ -1,18 +1,30 @@
 module Assistant.Config where
 
 import Universum
+import Fmt (Buildable(..))
 import Text.URI (URI, mkURI)
 import Data.Aeson (FromJSON(..), (.:), Value(..))
 import Network.HTTP.Client (responseStatus, getOriginalRequest, host)
-import Network.HTTP.Types (statusCode)
+import Network.HTTP.Types (statusCode, Status)
 import Control.Monad.Except (MonadError, throwError)
 import Network.HTTP.Req (MonadHttp(handleHttpException), isStatusCodeException, HttpException(..), Url, Scheme(..), useHttpsURI)
+import Text.Interpolation.Nyan
 
 type Assistant = AssistantT IO AssistantError
 
-data AssistantError = ServerError ByteString | NetworkError Text | DecodingError Text
+data AssistantError
+  = ServerError ByteString Status
+  | NetworkError Text
+  | DecodingError Text
   deriving stock Show
   deriving anyclass Exception
+
+instance Buildable AssistantError where
+  build = \case
+    ServerError (decodeUtf8 @Text -> host) status ->
+      [int||Server #{host} responded with error #{statusCode status}|]
+    NetworkError e -> [int||e|]
+    DecodingError e -> [int||Failed to decode response: #{e}|]
 
 newtype MonadIO m => AssistantT m e a
   = AssistantT
@@ -25,8 +37,9 @@ instance MonadHttp Assistant where
     e@(VanillaHttpException _) ->
       case isStatusCodeException e of
         Just(resp) ->
-          let msg = (host $ getOriginalRequest resp) <> " " <> (show $ statusCode $ responseStatus resp)
-          in throwError $ ServerError msg
+          let h = host $ getOriginalRequest resp
+              s = responseStatus resp
+          in throwError $ ServerError h s
         _ -> throwError $ NetworkError $ show e
     JsonHttpException e -> throwError $ DecodingError $ show e
 

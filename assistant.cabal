@@ -41,6 +41,7 @@ library
     , time
     , universum
     , unordered-containers
+    , nyan-interpolation
 
   default-extensions:
     UndecidableInstances
@@ -62,6 +63,7 @@ library
     TypeFamilies
     DataKinds
     TemplateHaskell
+    QuasiQuotes
 
   exposed-modules:    Assistant
   other-modules:
